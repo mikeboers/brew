@@ -164,16 +164,16 @@ class Pathname
   def atomic_write(content)
     # The enclosing `mktmpdir` and the `chmod` are a workaround
     # for https://github.com/rails/rails/pull/34037.
-    Dir.mktmpdir(".d", dirname) do |tmpdir|
-      should_fix_sticky_bit = dirname.world_writable? && !dirname.sticky?
-      FileUtils.chmod "+t", dirname if should_fix_sticky_bit
-      begin
+    should_fix_sticky_bit = dirname.world_writable? && !dirname.sticky?
+    FileUtils.chmod "+t", dirname if should_fix_sticky_bit
+    begin
+      Dir.mktmpdir(".d", dirname) do |tmpdir|
         File.atomic_write(self, tmpdir) do |file|
           file.write(content)
         end
-      ensure
-        FileUtils.chmod "-t", dirname if should_fix_sticky_bit
       end
+    ensure
+      FileUtils.chmod "-t", dirname if should_fix_sticky_bit
     end
   end
 
